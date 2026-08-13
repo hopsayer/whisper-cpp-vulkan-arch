@@ -59,5 +59,4 @@ Will be installed automatically by `makepkg -s` (for Option 2):
 ---
 
 *If you encounter any issues, please open an issue on GitHub.*
-```
 
