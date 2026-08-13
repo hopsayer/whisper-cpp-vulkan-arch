@@ -20,7 +20,7 @@ This repository provides:
 Download and install the latest release:
 
 ```bash
-curl -L https://github.com/hopsayer/whisper-cpp-vulkan-arch/releases/latest/download/whisper-cpp-vulkan-*.pkg.tar.zst -o whisper-cpp-vulkan.pkg.tar.zst
+curl -L https://github.com/hopsayer/whisper-cpp-vulkan-arch/releases/download/v1.9.1-2/whisper-cpp-vulkan-1.9.1-2-x86_64.pkg.tar.zst -o whisper-cpp-vulkan.pkg.tar.zst
 sudo pacman -U whisper-cpp-vulkan.pkg.tar.zst
 ```
 
