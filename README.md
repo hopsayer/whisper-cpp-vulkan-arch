@@ -54,7 +54,6 @@ Will be installed automatically by `makepkg -s` (for Option 2):
 
 - This package **conflicts** with the official `whisper-cpp` – it will replace it upon installation.
 - Vulkan acceleration will be used automatically if a compatible GPU and drivers are present. If not, the CPU fallback will engage.
-- Since **AUR pushes are temporarily disabled** ([[1]](https://lists.archlinux.org/archives/list/aur-general@lists.archlinux.org/message/YPJ3FQYJTJXXY3RUXCYLMHUKHLIUNVFF/), [[2]](https://archlinux.org/news/active-aur-malicious-packages-incident/)) due to the recent supply‑chain attack, this repository serves as a **temporary solution** until normal AUR operations resume.
 
 ---
 
