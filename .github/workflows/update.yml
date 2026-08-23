@@ -77,8 +77,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add PKGBUILD
-          git commit -m "Update to v${{ steps.latest.outputs.latest }}"
-          git push
+          if git diff --cached --quiet; then
+            echo "PKGBUILD unchanged, skipping commit."
+          else
+            git commit -m "Update to v${{ steps.latest.outputs.latest }}"
+            git push
+          fi
 
       - name: Prepare release assets
         if: steps.decide.outputs.run == 'true'
