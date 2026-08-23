@@ -60,19 +60,19 @@ jobs:
           fi
 
       - name: Bump pkgver if needed
-        if: if: steps.decide.outputs.run == 'true'
+        if: steps.decide.outputs.run == 'true'
         run: |
           sed -i "s/^pkgver=.*/pkgver=${{ steps.latest.outputs.latest }}/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
 
       - name: Build package
-        if: if: steps.decide.outputs.run == 'true'
+        if: steps.decide.outputs.run == 'true'
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder makepkg -sf --noconfirm --skippgpcheck
 
       - name: Commit updated PKGBUILD
-        if: if: steps.decide.outputs.run == 'true'
+        if: steps.decide.outputs.run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -81,14 +81,14 @@ jobs:
           git push
 
       - name: Prepare release assets
-        if: if: steps.decide.outputs.run == 'true'
+        if: steps.decide.outputs.run == 'true'
         run: |
           pkgver=$(grep -Po '^pkgver=\K.*' PKGBUILD)
           pkgrel=$(grep -Po '^pkgrel=\K.*' PKGBUILD)
           cp "whisper-cpp-vulkan-${pkgver}-${pkgrel}-x86_64.pkg.tar.zst" whisper-cpp-vulkan-x86_64.pkg.tar.zst
 
       - name: Create release
-        if: if: steps.decide.outputs.run == 'true'
+        if: steps.decide.outputs.run == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.latest.outputs.latest }}-1
