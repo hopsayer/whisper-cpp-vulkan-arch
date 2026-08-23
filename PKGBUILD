@@ -1,3 +1,4 @@
+# `whisper-cpp` package in pacman's `extra` repo:
 # Maintainer: Maxime Gauduin <alucryd@archlinux.org>
 # Contributor: Wuxxin <wuxxin@gmail.com>
 
@@ -8,6 +9,7 @@ pkgdesc="Port of OpenAI's Whisper model in C/C++"
 arch=(x86_64)
 url=https://github.com/ggerganov/whisper.cpp
 license=(MIT)
+install=whisper-cpp-vulkan.install
 depends=(
   ffmpeg
   glibc
@@ -29,7 +31,7 @@ makedepends=(
   vulkan-headers
 )
 source=(git+https://github.com/ggml-org/whisper.cpp.git#tag=v${pkgver})
-b2sums=('ec3a6e2a60485e0eb78fbec2ea133f821a180542fbac98e3e63098436cf3a6b012c35e3e660dd2ec016dcd8fc033937a17092757f5d625c6bd83817d9c27a40b')
+b2sums=('SKIP')
 
 build() {
   cmake -S whisper.cpp -B build -G Ninja \
@@ -48,3 +50,4 @@ package() {
   DESTDIR="${pkgdir}" cmake --install build
   install -Dm 644 whisper.cpp/LICENSE -t "${pkgdir}"/usr/share/licenses/${pkgname}
 }
+

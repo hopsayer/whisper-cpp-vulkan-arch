@@ -1,0 +1,23 @@
+post_install() {
+  _ignore_pkg
+}
+
+post_upgrade() {
+  _ignore_pkg
+}
+
+_ignore_pkg() {
+  if ! grep -q '^IgnorePkg.*whisper-cpp\b' /etc/pacman.conf; then
+    if grep -q '^IgnorePkg' /etc/pacman.conf; then
+      sed -i '/^IgnorePkg/ s/$/ whisper-cpp/' /etc/pacman.conf
+    else
+      sed -i '/^\[options\]/a IgnorePkg = whisper-cpp' /etc/pacman.conf
+    fi
+    echo ">> whisper-cpp добавлен в IgnorePkg (/etc/pacman.conf)"
+  fi
+}
+
+post_remove() {
+  sed -i 's/\bwhisper-cpp\b//' /etc/pacman.conf
+  sed -i '/^IgnorePkg\s*=\s*$/d' /etc/pacman.conf
+}

@@ -1,0 +1,67 @@
+name: Update whisper-cpp-vulkan
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # once a day, 06:00 UTC
+  workflow_dispatch: {}     # + can be launched manually from the Actions tab
+  
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Prep environment
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git cmake ninja \
+            spirv-headers vulkan-headers vulkan-icd-loader jq curl sudo
+
+          # makepkg не разрешает работать под root — создаём билд-юзера
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest upstream tag
+        id: latest
+        run: |
+          latest=$(curl -s https://api.github.com/repos/ggml-org/whisper.cpp/releases/latest | jq -r .tag_name | sed 's/^v//')
+          current=$(grep -Po '^pkgver=\K.*' PKGBUILD)
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+
+      - name: Bump pkgver if needed
+        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.latest.outputs.latest }}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+
+      - name: Build package
+        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        run: |
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          sudo -u builder makepkg -sf --noconfirm --skippgpcheck
+
+      - name: Commit updated PKGBUILD
+        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PKGBUILD
+          git commit -m "Update to v${{ steps.latest.outputs.latest }}"
+          git push
+
+      - name: Create release
+        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.latest.outputs.latest }}-1
+          name: v${{ steps.latest.outputs.latest }}-1
+          files: '*.pkg.tar.zst'
