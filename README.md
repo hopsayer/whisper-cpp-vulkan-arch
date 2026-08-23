@@ -10,8 +10,8 @@ The separate `whisper-cpp-vulkan` package has appeared and disappeared from the 
 ## The Solution
 
 This repository provides:
-- A clean `PKGBUILD` that compiles `whisper.cpp` with `-DGGML_VULKAN=ON` (and `-DGGML_CUDA=OFF`).
-- A **prebuilt binary package** (`.pkg.tar.zst`) for quick installation.
+- A clean `PKGBUILD` that compiles `whisper.cpp` with `-DGGML_VULKAN=ON` (and `-DGGML_CUDA=OFF`) for manual building&installation with `makepkg -si`.
+- A **prebuilt binary package** (`.pkg.tar.zst`) for quick installation, updated automatically along with the upstream [whisper.cpp](https://github.com/ggerganov/whisper.cpp) on a daily basis.
 
 ## Installation
 

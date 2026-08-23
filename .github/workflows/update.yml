@@ -81,5 +81,8 @@ jobs:
         with:
           tag_name: v${{ steps.latest.outputs.latest }}-1
           name: v${{ steps.latest.outputs.latest }}-1
+          body: |
+            Prebuilt binary package for Arch Linux. Can be manually downloaded and installed using `sudo pacman -U whisper-cpp-vulkan*.pkg.tar.zst`
+            The plain binary itself can be extracted and resulting files can be launched/placed like a portable installation (see `Option 3` of installation in README.md)
           files: |
             *.pkg.tar.zst
