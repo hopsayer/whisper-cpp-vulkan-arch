@@ -68,10 +68,18 @@ jobs:
           git commit -m "Update to v${{ steps.latest.outputs.latest }}"
           git push
 
+      - name: Prepare release assets
+        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        run: |
+          pkgver=$(grep -Po '^pkgver=\K.*' PKGBUILD)
+          pkgrel=$(grep -Po '^pkgrel=\K.*' PKGBUILD)
+          cp "whisper-cpp-vulkan-${pkgver}-${pkgrel}-x86_64.pkg.tar.zst" whisper-cpp-vulkan-x86_64.pkg.tar.zst
+
       - name: Create release
         if: steps.latest.outputs.latest != steps.latest.outputs.current
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.latest.outputs.latest }}-1
           name: v${{ steps.latest.outputs.latest }}-1
-          files: '*.pkg.tar.zst'
+          files: |
+            *.pkg.tar.zst
