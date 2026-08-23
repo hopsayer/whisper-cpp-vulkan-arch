@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Prep environment
         run: |
@@ -31,9 +34,12 @@ jobs:
 
       - name: Get latest upstream tag
         id: latest
+        shell: bash
+
         run: |
           latest=$(curl -s "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=30" \
-          | jq -r '[.[] | select(.prerelease==false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name' \
+            | jq -r '[.[] | select(.prerelease==false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name' \
+            | sed 's/^v//')
           current=$(grep -Po '^pkgver=\K.*' PKGBUILD)
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "current=$current" >> "$GITHUB_OUTPUT"
