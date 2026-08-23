@@ -15,7 +15,7 @@ This repository provides:
 
 ## Installation
 
-### Option 1: Install the prebuilt binary (fast but fixed version)
+### Option 1: Install the prebuilt binary (fast)
 
 Download and install the latest release:
 
@@ -24,7 +24,7 @@ curl -L https://github.com/hopsayer/whisper-cpp-vulkan-arch/releases/latest/down
 sudo pacman -U whisper-cpp-vulkan.pkg.tar.zst
 ```
 
-### Option 2: Build from source (transparent and version is always up-to-date)
+### Option 2: Build from source (transparent)
 
 ```bash
 git clone https://github.com/hopsayer/whisper-cpp-vulkan-arch
