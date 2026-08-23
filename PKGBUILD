@@ -5,6 +5,7 @@
 pkgname=whisper-cpp-vulkan
 pkgver=1.9.2
 pkgrel=1
+options=(!debug)
 pkgdesc="Port of OpenAI's Whisper model in C/C++"
 arch=(x86_64)
 url=https://github.com/ggerganov/whisper.cpp
