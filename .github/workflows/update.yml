@@ -3,7 +3,12 @@ name: Update whisper-cpp-vulkan
 on:
   schedule:
     - cron: '0 6 * * *'   # once a day, 06:00 UTC
-  workflow_dispatch: {}     # + can be launched manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force rebuild and release even if version unchanged'
+        type: boolean
+        default: false
   
 permissions:
   contents: write
@@ -37,8 +42,6 @@ jobs:
 
       - name: Get latest upstream tag
         id: latest
-        shell: bash
-
         run: |
           latest=$(curl -s "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=30" \
             | jq -r '[.[] | select(.prerelease==false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name' \
@@ -47,20 +50,29 @@ jobs:
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "current=$current" >> "$GITHUB_OUTPUT"
 
+      - name: Decide whether to proceed
+        id: decide
+        run: |
+          if [ "${{ steps.latest.outputs.latest }}" != "${{ steps.latest.outputs.current }}" ] || [ "${{ inputs.force }}" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Bump pkgver if needed
-        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        if: if: steps.decide.outputs.run == 'true'
         run: |
           sed -i "s/^pkgver=.*/pkgver=${{ steps.latest.outputs.latest }}/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
 
       - name: Build package
-        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        if: if: steps.decide.outputs.run == 'true'
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder makepkg -sf --noconfirm --skippgpcheck
 
       - name: Commit updated PKGBUILD
-        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        if: if: steps.decide.outputs.run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -69,14 +81,14 @@ jobs:
           git push
 
       - name: Prepare release assets
-        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        if: if: steps.decide.outputs.run == 'true'
         run: |
           pkgver=$(grep -Po '^pkgver=\K.*' PKGBUILD)
           pkgrel=$(grep -Po '^pkgrel=\K.*' PKGBUILD)
           cp "whisper-cpp-vulkan-${pkgver}-${pkgrel}-x86_64.pkg.tar.zst" whisper-cpp-vulkan-x86_64.pkg.tar.zst
 
       - name: Create release
-        if: steps.latest.outputs.latest != steps.latest.outputs.current
+        if: if: steps.decide.outputs.run == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.latest.outputs.latest }}-1
