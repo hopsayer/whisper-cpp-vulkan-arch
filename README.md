@@ -34,16 +34,40 @@ makepkg -si
 
 ### Option 3: Not an Arch system
 
-You can extract the binaries from the `.pkg.tar.zst` archive:
+**Automatic portable installation script** 
+
+(no root, no package manager — installs under your user's `~/.local/{bin,lib,share}` and adds `~/.local/bin` to `PATH` if missing):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hopsayer/whisper-cpp-vulkan-arch/main/scripts/portable-install.sh | bash
+```
+
+To remove everything installed this way:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hopsayer/whisper-cpp-vulkan-arch/main/scripts/portable-uninstall.sh | bash
+```
+
+<details>
+<summary>What the portable install script does (folder layout)</summary>
+
+```
+~/.local/lib/whisper-cpp-vulkan/         ← all .so files
+~/.local/lib/whisper-cpp-vulkan/bin/*    ← the real binaries (whisper-cli, etc.)
+~/.local/bin/whisper-cli                 ← a thin wrapper script that sets LD_LIBRARY_PATH and execs the real binary above
+~/.local/share/whisper-cpp-vulkan/manifest.txt  ← list of every installed file, used by the uninstall script
+```
+
+</details>
+
+**Manual unpack the release archive into any folder**
 
 ```bash
 tar -xvf whisper-cpp-vulkan-*.pkg.tar.zst
 ```
 
-The binaries will be inside `./whisper-cpp-vulkan-*/usr/bin/` (e.g., `whisper-cli`). 
-Copy them wherever you like and run with `LD_LIBRARY_PATH` if needed, or install to `/usr/local`.
-Or use `make install`.
-Or place it as a portable installation: `~/.local/bin`, etc
+The binaries will be inside `./usr/bin/` (e.g., `whisper-cli`), libraries inside `./usr/lib/`.
+Copy them wherever you like and run with `LD_LIBRARY_PATH` if needed, or install to `/usr/local`, or place as a portable install under `~/.local/bin` + `~/.local/lib`, etc.
 
 ## Requirements
 
