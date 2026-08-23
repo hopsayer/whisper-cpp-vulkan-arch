@@ -32,7 +32,8 @@ jobs:
       - name: Get latest upstream tag
         id: latest
         run: |
-          latest=$(curl -s https://api.github.com/repos/ggml-org/whisper.cpp/releases/latest | jq -r .tag_name | sed 's/^v//')
+          latest=$(curl -s "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=30" \
+          | jq -r '[.[] | select(.prerelease==false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name' \
           current=$(grep -Po '^pkgver=\K.*' PKGBUILD)
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "current=$current" >> "$GITHUB_OUTPUT"
