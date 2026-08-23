@@ -60,7 +60,7 @@ curl -fsSL https://raw.githubusercontent.com/hopsayer/whisper-cpp-vulkan-arch/ma
 
 </details>
 
-**Manual unpack the release archive into any folder**
+**Manually unpack the release archive into any folder**
 
 ```bash
 tar -xvf whisper-cpp-vulkan-*.pkg.tar.zst
