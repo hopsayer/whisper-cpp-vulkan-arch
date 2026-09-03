@@ -13,7 +13,7 @@ _ignore_pkg() {
     else
       sed -i '/^\[options\]/a IgnorePkg = whisper-cpp' /etc/pacman.conf
     fi
-    echo ">> whisper-cpp добавлен в IgnorePkg (/etc/pacman.conf)"
+    echo ">> whisper-cpp added to IgnorePkg (/etc/pacman.conf)"
   fi
 }
 
