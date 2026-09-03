@@ -3,7 +3,7 @@
 # Contributor: Wuxxin <wuxxin@gmail.com>
 
 pkgname=whisper-cpp-vulkan
-pkgver=1.9.2
+pkgver=1.9.1
 pkgrel=2
 options=(!debug)
 pkgdesc="Port of OpenAI's Whisper model in C/C++"
