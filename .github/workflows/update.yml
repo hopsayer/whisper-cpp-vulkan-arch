@@ -9,7 +9,7 @@ on:
         description: 'Force rebuild and release even if version unchanged'
         type: boolean
         default: false
-  
+
 permissions:
   contents: write
 
@@ -27,7 +27,6 @@ jobs:
           pacman -Syu --noconfirm --needed base-devel git cmake ninja \
             spirv-headers vulkan-headers vulkan-icd-loader jq curl sudo
 
-          # makepkg не разрешает работать под root — создаём билд-юзера
           useradd -m builder
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           chown -R builder:builder "$GITHUB_WORKSPACE"
@@ -36,7 +35,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Mark workspace as safe for git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
@@ -50,17 +49,28 @@ jobs:
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "current=$current" >> "$GITHUB_OUTPUT"
 
-      - name: Decide whether to proceed
+      - name: Decide whether upstream changed
+        id: upstream
+        run: |
+          if [ "${{ steps.latest.outputs.latest }}" != "${{ steps.latest.outputs.current }}" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decide whether to run at all
         id: decide
         run: |
-          if [ "${{ steps.latest.outputs.latest }}" != "${{ steps.latest.outputs.current }}" ] || [ "${{ inputs.force }}" = "true" ]; then
+          if [ "${{ steps.upstream.outputs.changed }}" = "true" ] || [ "${{ inputs.force }}" = "true" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Bump pkgver if needed
-        if: steps.decide.outputs.run == 'true'
+      # Only when upstream actually changed — update pkgver and reset pkgrel to 1.
+      # If it's just a force rebuild of the current version, do not touch PKGBUILD (including manual pkgrel bump).
+      - name: Bump pkgver on upstream change
+        if: steps.upstream.outputs.changed == 'true'
         run: |
           sed -i "s/^pkgver=.*/pkgver=${{ steps.latest.outputs.latest }}/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
@@ -72,7 +82,7 @@ jobs:
           sudo -u builder makepkg -sf --noconfirm --skippgpcheck
 
       - name: Commit updated PKGBUILD
-        if: steps.decide.outputs.run == 'true'
+        if: steps.upstream.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -84,19 +94,27 @@ jobs:
             git push
           fi
 
-      - name: Prepare release assets
+      - name: Read version for release
+        id: ver
         if: steps.decide.outputs.run == 'true'
         run: |
           pkgver=$(grep -Po '^pkgver=\K.*' PKGBUILD)
           pkgrel=$(grep -Po '^pkgrel=\K.*' PKGBUILD)
-          cp "whisper-cpp-vulkan-${pkgver}-${pkgrel}-x86_64.pkg.tar.zst" whisper-cpp-vulkan-x86_64.pkg.tar.zst
+          echo "pkgver=$pkgver" >> "$GITHUB_OUTPUT"
+          echo "pkgrel=$pkgrel" >> "$GITHUB_OUTPUT"
+          echo "tag=v${pkgver}-${pkgrel}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release assets
+        if: steps.decide.outputs.run == 'true'
+        run: |
+          cp "whisper-cpp-vulkan-${{ steps.ver.outputs.pkgver }}-${{ steps.ver.outputs.pkgrel }}-x86_64.pkg.tar.zst" whisper-cpp-vulkan-x86_64.pkg.tar.zst
 
       - name: Create release
         if: steps.decide.outputs.run == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.latest.outputs.latest }}-1
-          name: v${{ steps.latest.outputs.latest }}-1
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
           body: |
             Prebuilt binary package for Arch Linux. Can be manually downloaded and installed using `sudo pacman -U whisper-cpp-vulkan*.pkg.tar.zst`
             The plain binary itself can be extracted and resulting files can be launched/placed like a portable installation (see `Option 3` of installation in README.md)
