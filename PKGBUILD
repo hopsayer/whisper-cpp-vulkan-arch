@@ -3,8 +3,8 @@
 # Contributor: Wuxxin <wuxxin@gmail.com>
 
 pkgname=whisper-cpp-vulkan
-pkgver=1.9.2
-pkgrel=2
+pkgver=1.9.3
+pkgrel=1
 options=(!debug)
 pkgdesc="Port of OpenAI's Whisper model in C/C++"
 arch=(x86_64)
@@ -17,13 +17,16 @@ depends=(
   libgcc
   libstdc++
   vulkan-icd-loader
-  ggml-vulkan
 )
-conflicts=(whisper-cpp)
+conflicts=(
+  whisper-cpp
+  ggml
+  ggml-vulkan
+  llama-cpp
+)
 provides=(whisper-cpp)
 replaces=(
   whisper-cpp-rocm
-  whisper-cpp-vulkan
 )
 makedepends=(
   cmake
@@ -31,7 +34,6 @@ makedepends=(
   ninja
   spirv-headers
   vulkan-headers
-  ggml-vulkan
 )
 source=(git+https://github.com/ggml-org/whisper.cpp.git#tag=v${pkgver})
 b2sums=('SKIP')
@@ -45,8 +47,7 @@ build() {
       -DWHISPER_BUILD_SERVER=ON \
       -DWHISPER_BUILD_TESTS=OFF \
       -DGGML_VULKAN=ON \
-      -DGGML_CUDA=OFF \
-      -DWHISPER_USE_SYSTEM_GGML=ON
+      -DGGML_CUDA=OFF
   cmake --build build
 }
 

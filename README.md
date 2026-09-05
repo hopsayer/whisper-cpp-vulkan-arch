@@ -1,17 +1,34 @@
+> [!WARNING]
+> **This package is conceptually obsolete as of July 1, 2026.**
+>
+> **What to do now:** `pacman -S whisper-cpp ggml-vulkan`
+>
+> The official `extra/whisper-cpp` package now uses a modular ggml backend
+> system — the same binary works with any backend installed alongside it.
+> No separate Vulkan build is needed anymore.
+>
+> **This package also conflicts with `ggml`, `ggml-vulkan`, and `llama-cpp`.**
+> Installing it will remove those packages. If you use `llama-cpp` or anything
+> else from the ggml ecosystem, do NOT install this — use the official solution above.
+
 # whisper-cpp-vulkan
 
-A build of [whisper.cpp](https://github.com/ggerganov/whisper.cpp) with **Vulkan support** for Arch Linux.
+A self-contained build of [whisper.cpp](https://github.com/ggerganov/whisper.cpp) with bundled Vulkan support for Arch Linux. Kept as a historical reference.
 
-## The Problem
+## Why this exists
 
-The official `whisper-cpp` package from the `extra` repository is compiled **without** Vulkan acceleration. It detects dGPU, but does not use it. 
-The separate `whisper-cpp-vulkan` package has appeared and disappeared from the repos multiple times, and at the moment it is **neither in `extra` nor in the AUR**.
+In July–August 2026, enabling GPU acceleration for `whisper-cpp` on Arch via Vulkan was a genuinely unsolvable puzzle:
 
-## The Solution
+- The official `extra/whisper-cpp` detected your GPU but didn't use it.
+- Googling the problem led only to outdated information — or back to this repo and [my related post](https://www.reddit.com/r/archlinux/comments/1vn5k3e/solution_whispercpp_with_vulkan_support_for_arch/). Me as a user literally became trapped within a vicious cycle of outdated sources.
+- `ggml-vulkan` — the package that actually fixes it — existed since June 19, but nothing pointed to it: pacman didn't mention it, there was no Arch Wiki page for whisper-cpp (unlike [llama-cpp](https://wiki.archlinux.org/title/Llama.cpp), where ggml-backends are explicitly listed and mentioned to be installed), and no search results connected the two. 
+- So there was a several months time window during which it was hard to figure out how to make whisper-cpp just use the damn GPU. 
 
-This repository provides:
-- A clean `PKGBUILD` that compiles `whisper.cpp` with `-DGGML_VULKAN=ON` (and `-DGGML_CUDA=OFF`) for manual building&installation with `makepkg -si`.
-- A **prebuilt binary package** (`.pkg.tar.zst`) for quick installation, updated automatically along with the upstream [whisper.cpp](https://github.com/ggerganov/whisper.cpp) on a daily basis.
+The fix (`pacman -S whisper-cpp ggml-vulkan`) became discoverable only by accident: a Reddit commenter mentioned `ggml` (not even `ggml-vulkan`), which by chance led to the llama.cpp Arch Wiki page, which listed the ggml backends and implied `ggml` is a split package — some logic became visible.
+
+On July 1, 2026, `whisper-cpp` 1.9.1-1 landed in `extra` with `WHISPER_USE_SYSTEM_GGML=ON` and `replaces=(whisper-cpp-vulkan)`, making this package redundant. It took until September 3 to find out.
+
+The underlying discoverability problem — that `whisper-cpp` doesn't list `ggml-vulkan` as an `optdepends` — remains open. A bug report / MR to the official package is planned.
 
 ## Installation
 
@@ -76,7 +93,7 @@ Will be installed automatically by `makepkg -s` (for Option 2):
 - **Runtime**: `vulkan-icd-loader` (and a working Vulkan driver for your GPU).
 - **Build-time** (if building from source): `vulkan-headers`, `spirv-headers`, `cmake`, `ninja`, `git`.
 
-## Important Notes
+## Important Notes (limited relevance now)
 - This package **conflicts** with the official `whisper-cpp` – it will replace it upon installation.
 - The included `whisper-cpp-vulkan.install` script automatically adds `whisper-cpp` to `IgnorePkg` in `/etc/pacman.conf` on install/upgrade, so a future `whisper-cpp` update in `extra` won't try to push this package out during `pacman -Syu`. It's removed from `IgnorePkg` automatically if you uninstall this package.
 - Vulkan acceleration will be used automatically if a compatible GPU and drivers are present. If not, the CPU fallback will engage.
